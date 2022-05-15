@@ -1,16 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   error_checking.c                                   :+:      :+:    :+:   */
+/*   error_bonus.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ynuiga <ynuiga@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/05/13 19:56:07 by ynuiga            #+#    #+#             */
-/*   Updated: 2022/05/14 20:22:34 by ynuiga           ###   ########.fr       */
+/*   Created: 2022/05/14 19:08:12 by ynuiga            #+#    #+#             */
+/*   Updated: 2022/05/14 20:22:26 by ynuiga           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo.h"
+#include "philo_bonus.h"
+
 
 int	all_digits(int argc, char **argv)
 {
@@ -32,7 +33,7 @@ int	all_digits(int argc, char **argv)
 	return (1);
 }
 
-void	error_checking(int argc, char	**argv)
+void	error_checking_b(int argc, char	**argv)
 {
 	if (!all_digits(argc, argv))
 	{

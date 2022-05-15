@@ -6,7 +6,7 @@
 /*   By: ynuiga <ynuiga@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/08 13:44:55 by ynuiga            #+#    #+#             */
-/*   Updated: 2022/05/14 18:07:07 by ynuiga           ###   ########.fr       */
+/*   Updated: 2022/05/14 20:33:45 by ynuiga           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,15 +91,15 @@ int	main(int argc, char **argv)
 	t_info	info;
 	int		i;
 
-	philosophers = malloc(sizeof(t_philo) * (ft_atoi(argv[1])));
 	error_checking(argc, argv);
+	philosophers = malloc(sizeof(t_philo) * (ft_atoi(argv[1])));
 	info.number_of_philos = ft_atoi(argv[1]);
 	info.forks = malloc(sizeof(pthread_mutex_t) * info.number_of_philos);
 	info.time_to_die = ft_atoi(argv[2]);
 	info.time_to_eat = ft_atoi(argv[3]);
 	info.time_to_sleep = ft_atoi(argv[4]);
 	info.number_of_meals = -1;
-	if (argv[5])
+	if (argc == 6)
 		info.number_of_meals = ft_atoi(argv[5]);
 	info.philo_stat = 1;
 	i = 0;

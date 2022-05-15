@@ -6,7 +6,7 @@
 /*   By: ynuiga <ynuiga@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/05/11 16:43:03 by ynuiga            #+#    #+#             */
-/*   Updated: 2022/05/14 17:16:55 by ynuiga           ###   ########.fr       */
+/*   Updated: 2022/05/14 20:39:55 by ynuiga           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,7 +89,7 @@ void	philo_survival(t_philo	*philosophers)
 			else
 			{
 				philosophers->info->philo_stat = 0;
-				printf("i is = %d\n", i);
+				//printf("i is = %d\n", i);
 				printf("%ldms\t%d is DEAD!\n",
 					current_time_ms() - philosophers[i].info->starting_time,
 					philosophers[i].philo_id);

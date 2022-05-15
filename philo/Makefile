@@ -11,11 +11,11 @@ OBJS = $(SRCS:%.c=%.o)
 
 all : $(NAME)
 
-$(NAME) : $(OBJS) $(LIBFT)
+$(NAME) : $(OBJS)
 	$(CC) $(OBJS) -o $(NAME) $(CFLAGS)
 
 clean :
-	rm -f $(OBJS)
+	rm $(OBJS)
 
 fclean : clean
 	rm $(NAME)
