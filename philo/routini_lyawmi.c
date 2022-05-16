@@ -6,35 +6,31 @@
 /*   By: ynuiga <ynuiga@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/05/11 16:43:03 by ynuiga            #+#    #+#             */
-/*   Updated: 2022/05/14 20:39:55 by ynuiga           ###   ########.fr       */
+/*   Updated: 2022/05/16 11:57:42 by ynuiga           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-void	activity(int num, t_philo philosophers)
+void	activity(int action, t_philo philosophers)
 {
-	int	i;
-
-	i = 0;
 	if (philosophers.info->philo_stat == 0)
 		return ;
-	else if (num == PHF)
+	else if (action == PHF)
 		printf("%ldms\t%d has taken a fork\n",
 			current_time_ms() - philosophers.info->starting_time,
 			philosophers.philo_id);
-	else if (num == PIE)
+	else if (action == PIE)
 	{
 		printf("%ldms\t%d is eating\n",
 			current_time_ms() - philosophers.info->starting_time,
 			philosophers.philo_id);
-		i++;
 	}
-	else if (num == PIS)
+	else if (action == PIS)
 		printf("%ldms\t%d is sleeping\n",
 			current_time_ms() - philosophers.info->starting_time,
 			philosophers.philo_id);
-	else if (num == PIT)
+	else if (action == PIT)
 		printf("%ldms\t%d is thinking\n",
 			current_time_ms() - philosophers.info->starting_time,
 			philosophers.philo_id);
@@ -47,19 +43,11 @@ int	less_eating_philosopher(t_philo	*philosophers)
 
 	i = 1;
 	min = philosophers[0].philo_times_ate;
-	if (philosophers->info->number_of_philos < 3)
+	while (i < philosophers->info->number_of_philos)
 	{
-		if (min > philosophers[1].philo_times_ate)
-			min = philosophers[1].philo_times_ate;
-	}
-	else
-	{
-		while (i < philosophers->info->number_of_philos)
-		{
-			if (min > philosophers[i].philo_times_ate)
-				min = philosophers[i].philo_times_ate;
-			i++;
-		}
+		if (min > philosophers[i].philo_times_ate)
+			min = philosophers[i].philo_times_ate;
+		i++;
 	}
 	if (min >= philosophers->info->number_of_meals)
 		return (0);
@@ -86,10 +74,10 @@ void	philo_survival(t_philo	*philosophers)
 				printf("Everyone ate atleast the number of meals they need\n");
 				exit (0);
 			}
-			else
+			else if (philosophers[i].info->time_to_die <= difference)
 			{
 				philosophers->info->philo_stat = 0;
-				//printf("i is = %d\n", i);
+				printf("the time diff is %ld and i is %d\n", difference, i);
 				printf("%ldms\t%d is DEAD!\n",
 					current_time_ms() - philosophers[i].info->starting_time,
 					philosophers[i].philo_id);
@@ -104,9 +92,7 @@ void	*routine(void	*param)
 {
 	t_philo	*philosophers;
 	long	time_right_now;
-	long	i;
 
-	i = 0;
 	philosophers = (t_philo *)param;
 	while (philosophers->info->philo_stat)
 	{
@@ -127,13 +113,12 @@ void	*routine(void	*param)
 			->forks[philosophers->philo_id - 1]);
 		pthread_mutex_unlock(&philosophers->info->forks[philosophers->philo_id
 			% philosophers->info->number_of_philos]);
-		activity(PIS, *philosophers);
 		time_right_now = current_time_ms();
+		activity(PIS, *philosophers);
 		while (current_time_ms() - time_right_now
 			< philosophers->info->time_to_sleep)
 			usleep(50);
 		activity(PIT, *philosophers);
-		i++;
 	}
-	return (NULL);
+	return (0);
 }

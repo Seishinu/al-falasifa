@@ -4,6 +4,7 @@ CFLAGS = -Wall -Werror -Wextra
 
 SRCS_BONUS = philo_bonus.c \
 	error_bonus.c \
+	timer_bonus.c \
 
 OBJS_BONUS = $(SRCS_BONUS:%.c=%.o)
 
