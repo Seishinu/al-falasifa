@@ -6,12 +6,11 @@
 /*   By: ynuiga <ynuiga@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/05/14 19:08:12 by ynuiga            #+#    #+#             */
-/*   Updated: 2022/05/14 20:22:26 by ynuiga           ###   ########.fr       */
+/*   Updated: 2022/05/16 13:44:06 by ynuiga           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo_bonus.h"
-
 
 int	all_digits(int argc, char **argv)
 {

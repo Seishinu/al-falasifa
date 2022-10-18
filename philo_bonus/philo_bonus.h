@@ -6,13 +6,12 @@
 /*   By: ynuiga <ynuiga@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/05/14 18:58:38 by ynuiga            #+#    #+#             */
-/*   Updated: 2022/05/16 13:27:04 by ynuiga           ###   ########.fr       */
+/*   Updated: 2022/05/16 20:36:09 by ynuiga           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PHILO_BONUS
-# define PHILO_BONUS
-
+#ifndef PHILO_BONUS_H
+# define PHILO_BONUS_H
 # include <stdio.h>
 # include <unistd.h>
 # include <pthread.h>
@@ -39,6 +38,7 @@ typedef struct s_info
 	long			time_to_sleep;
 	long			starting_time;
 	long			number_of_meals;
+	long			philo_times_ate;
 }					t_info;
 
 typedef struct s_philo
@@ -48,12 +48,12 @@ typedef struct s_philo
 	pthread_t		philo;
 	int				philo_id;
 	long			last_meal;
-	long			philo_times_ate;
+	pid_t			*philo_pid;
 }					t_philo;
 
 void	error_checking_b(int argc, char **argv);
 int		ft_atoi(const char	*str);
 int		ft_isdigit(int c);
-long	current_time_ms();
+long	current_time_ms(void);
 
 #endif

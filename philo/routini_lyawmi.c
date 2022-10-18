@@ -6,34 +6,39 @@
 /*   By: ynuiga <ynuiga@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/05/11 16:43:03 by ynuiga            #+#    #+#             */
-/*   Updated: 2022/05/16 11:57:42 by ynuiga           ###   ########.fr       */
+/*   Updated: 2022/10/18 10:56:50 by ynuiga           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-void	activity(int action, t_philo philosophers)
+void	activity(int action, t_philo *philosophers)
 {
-	if (philosophers.info->philo_stat == 0)
+	pthread_mutex_lock(philosophers->info->philo_stat_mut);
+	if (philosophers->info->philo_stat == 0)
+	{
+		pthread_mutex_unlock(philosophers->info->philo_stat_mut);
 		return ;
-	else if (action == PHF)
-		printf("%ldms\t%d has taken a fork\n",
-			current_time_ms() - philosophers.info->starting_time,
-			philosophers.philo_id);
+	}
+	pthread_mutex_unlock(philosophers->info->philo_stat_mut);
+	if (action == PHF)
+		printf("%ld\t%d has taken a fork\n",
+			current_time_ms() - philosophers->info->starting_time,
+			philosophers->philo_id);
 	else if (action == PIE)
 	{
-		printf("%ldms\t%d is eating\n",
-			current_time_ms() - philosophers.info->starting_time,
-			philosophers.philo_id);
+		printf("%ld\t%d is eating\n",
+			current_time_ms() - philosophers->info->starting_time,
+			philosophers->philo_id);
 	}
 	else if (action == PIS)
-		printf("%ldms\t%d is sleeping\n",
-			current_time_ms() - philosophers.info->starting_time,
-			philosophers.philo_id);
+		printf("%ld\t%d is sleeping\n",
+			current_time_ms() - philosophers->info->starting_time,
+			philosophers->philo_id);
 	else if (action == PIT)
-		printf("%ldms\t%d is thinking\n",
-			current_time_ms() - philosophers.info->starting_time,
-			philosophers.philo_id);
+		printf("%ld\t%d is thinking\n",
+			current_time_ms() - philosophers->info->starting_time,
+			philosophers->philo_id);
 }
 
 int	less_eating_philosopher(t_philo	*philosophers)
@@ -41,12 +46,18 @@ int	less_eating_philosopher(t_philo	*philosophers)
 	int	i;
 	int	min;
 
-	i = 1;
+	if (philosophers->info->number_of_meals == -1)
+		return (1);
+	pthread_mutex_lock(&philosophers->info->philo_times_ate_mut[0]);
 	min = philosophers[0].philo_times_ate;
+	pthread_mutex_unlock(&philosophers->info->philo_times_ate_mut[0]);
+	i = 1;
 	while (i < philosophers->info->number_of_philos)
 	{
+		pthread_mutex_lock(&philosophers->info->philo_times_ate_mut[i]);
 		if (min > philosophers[i].philo_times_ate)
 			min = philosophers[i].philo_times_ate;
+		pthread_mutex_unlock(&philosophers->info->philo_times_ate_mut[i]);
 		i++;
 	}
 	if (min >= philosophers->info->number_of_meals)
@@ -64,28 +75,25 @@ void	philo_survival(t_philo	*philosophers)
 	{
 		if (i == philosophers->info->number_of_philos)
 			i = 0;
-		difference = current_time_ms() - philosophers->last_meal;
-		if (philosophers[i].info->time_to_die <= difference
+		pthread_mutex_lock(&philosophers->info->last_meal_mut[i]);
+		difference = current_time_ms() - philosophers[i].last_meal;
+		pthread_mutex_unlock(&philosophers->info->last_meal_mut[i]);
+		if (philosophers->info->time_to_die <= difference
 			|| !less_eating_philosopher(philosophers))
 		{
-			if (philosophers->info->number_of_meals != -1
-				&& !less_eating_philosopher(philosophers))
-			{
-				printf("Everyone ate atleast the number of meals they need\n");
-				exit (0);
-			}
-			else if (philosophers[i].info->time_to_die <= difference)
-			{
-				philosophers->info->philo_stat = 0;
-				printf("the time diff is %ld and i is %d\n", difference, i);
-				printf("%ldms\t%d is DEAD!\n",
-					current_time_ms() - philosophers[i].info->starting_time,
-					philosophers[i].philo_id);
-				exit (0);
-			}
+			dead_end(philosophers, difference, i);
+			break ;
 		}
 		i++;
 	}
+}
+
+void	forks_down(t_philo	*philosophers)
+{
+	pthread_mutex_unlock(&philosophers->info
+		->forks[philosophers->philo_id - 1]);
+	pthread_mutex_unlock(&philosophers->info->forks[philosophers->philo_id
+		% philosophers->info->number_of_philos]);
 }
 
 void	*routine(void	*param)
@@ -94,31 +102,24 @@ void	*routine(void	*param)
 	long	time_right_now;
 
 	philosophers = (t_philo *)param;
+	pthread_mutex_lock(philosophers->info->philo_stat_mut);
 	while (philosophers->info->philo_stat)
 	{
-		pthread_mutex_lock(&philosophers
-			->info->forks[philosophers->philo_id - 1]);
-		activity(PHF, *philosophers);
-		pthread_mutex_lock(&philosophers->info->forks[philosophers->philo_id
-			% philosophers->info->number_of_philos]);
-		activity(PHF, *philosophers);
-		philosophers->philo_times_ate++;
-		activity(PIE, *philosophers);
+		pthread_mutex_unlock(philosophers->info->philo_stat_mut);
+		food_time(philosophers);
 		time_right_now = current_time_ms();
-		philosophers->last_meal = current_time_ms();
 		while (current_time_ms() - time_right_now
 			< philosophers->info->time_to_eat)
 			usleep(50);
-		pthread_mutex_unlock(&philosophers->info
-			->forks[philosophers->philo_id - 1]);
-		pthread_mutex_unlock(&philosophers->info->forks[philosophers->philo_id
-			% philosophers->info->number_of_philos]);
+		forks_down(philosophers);
+		activity(PIS, philosophers);
 		time_right_now = current_time_ms();
-		activity(PIS, *philosophers);
 		while (current_time_ms() - time_right_now
 			< philosophers->info->time_to_sleep)
 			usleep(50);
-		activity(PIT, *philosophers);
+		activity(PIT, philosophers);
+		pthread_mutex_lock(philosophers->info->philo_stat_mut);
 	}
+	pthread_mutex_unlock(philosophers->info->philo_stat_mut);
 	return (0);
 }

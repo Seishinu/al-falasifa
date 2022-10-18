@@ -1,8 +1,9 @@
 NAME = philo
 
-CFLAGS = -Wall -Werror -Wextra
+CFLAGS = -Wall -Werror -Wextra -fsanitize=thread -g
 
 SRCS = philo.c \
+	outils.c \
 	timer.c \
 	routini_lyawmi.c \
 	error_checking.c \
@@ -15,9 +16,9 @@ $(NAME) : $(OBJS)
 	$(CC) $(OBJS) -o $(NAME) $(CFLAGS)
 
 clean :
-	rm $(OBJS)
+	rm -f $(OBJS)
 
 fclean : clean
-	rm $(NAME)
+	rm -f $(NAME)
 
 re : fclean all

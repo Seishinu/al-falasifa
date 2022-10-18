@@ -6,7 +6,7 @@
 /*   By: ynuiga <ynuiga@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/05/14 18:20:23 by ynuiga            #+#    #+#             */
-/*   Updated: 2022/05/16 13:32:34 by ynuiga           ###   ########.fr       */
+/*   Updated: 2022/05/16 20:55:04 by ynuiga           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,12 +65,24 @@ void	*philo_survival(void	*param)
 	while (1)
 	{
 		difference = current_time_ms() - philosophers->last_meal;
-		if (philosophers->info->time_to_die <= difference)
+		if (philosophers->info->time_to_die <= difference
+			|| philosophers->info->philo_times_ate
+			>= philosophers->info->number_of_meals)
 		{
-			sem_wait(philosophers->semaprint);
-			printf("%ldms\t%d is DEAD!\n",
-				current_time_ms() - philosophers->info->starting_time,
-				philosophers->philo_id);
+			if (philosophers->info->time_to_die <= difference)
+			{
+				sem_wait(philosophers->semaprint);
+				printf("%ldms\t%d is DEAD!\n",
+					current_time_ms() - philosophers->info->starting_time,
+					philosophers->philo_id);
+			}
+			else
+			{
+				sem_wait(philosophers->semaprint);
+				printf("meals %ld, times at %ld\n", philosophers->info->number_of_meals, philosophers->info->philo_times_ate);
+				printf("ALL PHILOSOPHERS ATE ALL THEIR MEALS\n");
+				exit (1);
+			}
 			exit (0);
 		}
 	}
@@ -125,20 +137,20 @@ void	*routine(sem_t	*semaphilo, t_philo	*philosophers)
 		activity(PHF, philosophers);
 		sem_wait(semaphilo);
 		activity(PHF, philosophers);
-		philosophers->philo_times_ate++;
+		philosophers->info->philo_times_ate++;
+		activity(PIE, philosophers);
 		time_right_now = current_time_ms();
 		philosophers->last_meal = current_time_ms();
-		activity(PIE, philosophers);
 		while (current_time_ms() - time_right_now
 			< philosophers->info->time_to_eat)
-			usleep(100);
+			usleep(50);
 		sem_post(semaphilo);
 		sem_post(semaphilo);
-		time_right_now = current_time_ms();
 		activity(PIS, philosophers);
+		time_right_now = current_time_ms();
 		while (current_time_ms() - time_right_now
 			< philosophers->info->time_to_sleep)
-			usleep(100);
+			usleep(50);
 		activity(PIT, philosophers);
 	}
 	return (0);
@@ -150,8 +162,8 @@ int	main(int	argc, char	**argv)
 	t_info	info;
 	sem_t	*semaphilo;
 	sem_t	semaprint;
+	int		exit_code;
 	int		i;
-	pid_t	*id;
 
 	error_checking_b(argc, argv);
 	philosophers = malloc(sizeof(t_philo));
@@ -159,8 +171,9 @@ int	main(int	argc, char	**argv)
 	info.time_to_die = ft_atoi(argv[2]);
 	info.time_to_eat = ft_atoi(argv[3]);
 	info.time_to_sleep = ft_atoi(argv[4]);
-	id = (pid_t *)malloc(sizeof(pid_t) * (info.number_of_philos + 1));
-	id[info.number_of_philos] = 0;
+	philosophers->philo_pid = (pid_t *)malloc(sizeof(pid_t)
+		* (info.number_of_philos + 1));
+	philosophers->philo_pid[info.number_of_philos] = 0;
 	if (argc == 6)
 		info.number_of_meals = ft_atoi(argv[5]);
 	sem_unlink("semaphilos");
@@ -168,28 +181,34 @@ int	main(int	argc, char	**argv)
 	philosophers->semaprint = &semaprint;
 	sem_unlink("semaprint");
 	philosophers->semaprint = sem_open("semaprint", O_CREAT, 0666, 1);
+	philosophers->info = &info;
+	info.philo_times_ate = 0;
+	philosophers->info->starting_time = current_time_ms();
 	i = 0;
 	while (i < info.number_of_philos)
 	{
-		id[i] = fork();
-		if (id[i] == -1)
+		philosophers->philo_pid[i] = fork();
+		if (philosophers->philo_pid[i] == -1)
 			exit (1);
-		else if(id[i] == 0)
+		else if(philosophers->philo_pid[i] == 0)
 		{
-			philosophers->info = &info;
 			philosophers->philo_id = i + 1;
-			philosophers->info->starting_time = current_time_ms();
 			philosophers->last_meal = philosophers->info->starting_time;
 			routine(semaphilo, philosophers);
 		}
 		i++;
 	}
-	wait(NULL);
 	i = 0;
-	while (id[i])
+	while (wait(&exit_code) != -1)
 	{
-		kill(id[i], SIGKILL);
-		i++;
+		if (!exit_code)
+		{
+			while (philosophers->philo_pid[i])
+			{
+				kill(philosophers->philo_pid[i], SIGKILL);
+				i++;
+			}
+		}
 	}
 	return (0);
 }

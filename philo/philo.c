@@ -6,7 +6,7 @@
 /*   By: ynuiga <ynuiga@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/08 13:44:55 by ynuiga            #+#    #+#             */
-/*   Updated: 2022/05/15 11:22:51 by ynuiga           ###   ########.fr       */
+/*   Updated: 2022/10/18 10:59:17 by ynuiga           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,29 +19,11 @@ int	ft_isdigit(int c)
 	return (0);
 }
 
-int static	quickmaphs(const char *str, int sign, size_t i)
-{
-	size_t	rslt;
-
-	rslt = 0;
-	while (str[i] && ft_isdigit(str[i]))
-	{
-		if ((unsigned long)rslt * 10 + (str[i] - 48)
-			> 2147483647 && sign == 1)
-			return (0);
-		else if ((unsigned long)rslt * 10 + (str[i] - 48)
-			> (unsigned long)9223372036854775807 + 1 && sign == -1)
-			return (0);
-		rslt = (rslt * 10) + (str[i] - 48);
-		i++;
-	}
-	return (rslt * sign);
-}
-
 int	ft_atoi(const char	*str)
 {
 	size_t	i;
 	int		sign;
+	size_t	rslt;
 
 	i = 0;
 	sign = 1;
@@ -53,10 +35,16 @@ int	ft_atoi(const char	*str)
 			sign = -1;
 		i++;
 	}
-	return (quickmaphs(str, sign, i));
+	rslt = 0;
+	while (str[i] && ft_isdigit(str[i]))
+	{
+		rslt = (rslt * 10) + (str[i] - 48);
+		i++;
+	}
+	return (rslt * sign);
 }
 
-void	philosophers_dawn(t_philo	*philosophers)
+int	philosophers_dawn(t_philo	*philosophers)
 {
 	int	i;
 
@@ -72,47 +60,65 @@ void	philosophers_dawn(t_philo	*philosophers)
 	}
 	philo_survival(philosophers);
 	i = 0;
+	if (philosophers->info->number_of_philos == 1)
+		pthread_detach(philosophers->philo);
 	while (i < philosophers->info->number_of_philos)
 	{
 		pthread_join(philosophers[i].philo, NULL);
 		i++;
 	}
+	mutex_destroyer(philosophers);
+	return (0);
+}
+
+int	mutex_initialize(t_philo	*philosophers, t_info	*info, char	**argv)
+{
+	int	i;
+
 	i = 0;
-	while (i < philosophers->info->number_of_philos)
+	while (i < info->number_of_philos)
 	{
-		pthread_mutex_destroy(&philosophers->info->forks[i]);
+		philosophers[i].info = info;
+		if (pthread_mutex_init(&info->forks[i], NULL) != 0)
+			return (ECM);
+		if (pthread_mutex_init(&info->last_meal_mut[i], NULL) != 0)
+			return (ECM);
+		if (pthread_mutex_init(&info->philo_times_ate_mut[i], NULL) != 0)
+			return (ECM);
+		philosophers[i].philo_id = i + 1;
+		if (argv[5])
+			philosophers[i].philo_times_ate = 0;
 		i++;
 	}
+	if (pthread_mutex_init(info->philo_stat_mut, NULL))
+		return (ECM);
+	return (0);
 }
 
 int	main(int argc, char **argv)
 {
 	t_philo	*philosophers;
 	t_info	info;
-	int		i;
 
-	error_checking(argc, argv);
-	philosophers = malloc(sizeof(t_philo) * (ft_atoi(argv[1])));
-	info.number_of_philos = ft_atoi(argv[1]);
-	info.forks = malloc(sizeof(pthread_mutex_t) * info.number_of_philos);
-	info.time_to_die = ft_atoi(argv[2]);
-	info.time_to_eat = ft_atoi(argv[3]);
-	info.time_to_sleep = ft_atoi(argv[4]);
-	info.number_of_meals = -1;
-	if (argc == 6)
-		info.number_of_meals = ft_atoi(argv[5]);
-	info.philo_stat = 1;
-	i = 0;
-	while (i < info.number_of_philos)
+	if (!error_checking(argc, argv))
 	{
-		philosophers[i].info = &info;
-		if (pthread_mutex_init(&info.forks[i], NULL) != 0)
-			exit (5);
-		philosophers[i].philo_id = i + 1;
-		if (argv[5])
-			philosophers[i].philo_times_ate = 0;
-		i++;
+		philosophers = malloc(sizeof(t_philo) * (ft_atoi(argv[1])));
+		info.number_of_philos = ft_atoi(argv[1]);
+		info.forks = malloc(sizeof(pthread_mutex_t) * info.number_of_philos);
+		info.last_meal_mut = malloc(sizeof(pthread_mutex_t)
+				* info.number_of_philos);
+		info.philo_times_ate_mut = malloc(sizeof(pthread_mutex_t)
+				* info.number_of_philos);
+		info.philo_stat_mut = malloc(sizeof(pthread_mutex_t));
+		info.time_to_die = ft_atoi(argv[2]);
+		info.time_to_eat = ft_atoi(argv[3]);
+		info.time_to_sleep = ft_atoi(argv[4]);
+		info.number_of_meals = -1;
+		info.philo_stat = 1;
+		if (argc == 6)
+			info.number_of_meals = ft_atoi(argv[5]);
+		mutex_initialize(philosophers, &info, argv);
+		philosophers_dawn(philosophers);
 	}
-	philosophers_dawn(philosophers);
 	return (0);
 }
