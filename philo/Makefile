@@ -1,11 +1,11 @@
 NAME = philo
 
-CFLAGS = -Wall -Werror -Wextra -fsanitize=thread -g
+CFLAGS = -Wall -Werror -Wextra #-fsanitize=thread
 
 SRCS = philo.c \
 	outils.c \
 	timer.c \
-	routini_lyawmi.c \
+	philo_routine.c \
 	error_checking.c \
 
 OBJS = $(SRCS:%.c=%.o)
