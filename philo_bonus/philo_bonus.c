@@ -6,7 +6,7 @@
 /*   By: ynuiga <ynuiga@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/05/14 18:20:23 by ynuiga            #+#    #+#             */
-/*   Updated: 2022/10/22 16:04:58 by ynuiga           ###   ########.fr       */
+/*   Updated: 2022/10/28 14:42:30 by ynuiga           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,14 +23,14 @@ void	*routine(t_philo	*philosophers)
 		prep_to_eat(philosophers);
 		time_right_now = current_time_ms();
 		food_activity(PIE, philosophers);
-		philosophers->last_meal = current_time_ms();
+		meals(philosophers, 10);
 		while (current_time_ms() - time_right_now
 			< philosophers->time_to_eat)
 			usleep(100);
 		sem_post(philosophers->forks);
 		sem_post(philosophers->forks);
 		if (philosophers->number_of_meals >= 0)
-			philosophers->philo_times_ate++;
+			meals(philosophers, 11);
 		time_right_now = current_time_ms();
 		other_activities(PIS, philosophers);
 		while (current_time_ms() - time_right_now
@@ -77,6 +77,8 @@ void	setting_struct(t_philo *philosophers, int argc, char **argv)
 	philosophers->forks
 		= sem_open("forks", O_CREAT, 0666, philosophers->number_of_philos);
 	sem_unlink("semaprint");
+	sem_unlink("last_meal");
+	sem_unlink("times_ate");
 	philosophers->semaprint = sem_open("semaprint", O_CREAT, 0644, 1);
 	philosophers->philo_times_ate = 0;
 	philosophers->starting_time = current_time_ms();
@@ -116,7 +118,6 @@ int	main(int argc, char	**argv)
 		if (times == philosophers->number_of_philos)
 		{
 			sem_wait(philosophers->semaprint);
-			printf("ALL PHILOSOPHERS ATE ALL THEIR MEALS\n");
 			return (0);
 		}
 	}

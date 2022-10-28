@@ -6,7 +6,7 @@
 /*   By: ynuiga <ynuiga@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/05/14 18:58:38 by ynuiga            #+#    #+#             */
-/*   Updated: 2022/10/22 16:05:08 by ynuiga           ###   ########.fr       */
+/*   Updated: 2022/10/28 14:49:01 by ynuiga           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 # include <limits.h>
 # include <semaphore.h>
 # include <signal.h>
+# include <stdatomic.h>
 # define AMD -1
 # define WNA -2
 # define CVA -3
@@ -35,13 +36,13 @@ typedef struct s_philo
 	sem_t			*semaprint;
 	sem_t			*forks;
 	pthread_t		philo;
-	long			last_meal;
+	_Atomic long	last_meal;
 	long			time_to_die;
 	long			time_to_eat;
 	long			time_to_sleep;
 	long			starting_time;
 	long			number_of_meals;
-	long			philo_times_ate;
+	_Atomic long	philo_times_ate;
 	pid_t			*philo_pid;
 	int				philo_id;
 	int				number_of_philos;
@@ -55,5 +56,6 @@ long	current_time_ms(void);
 void	food_activity(int action, t_philo	*philosophers);
 void	other_activities(int action, t_philo	*philosophers);
 void	*philo_survival(void	*param);
+void	meals(t_philo	*philosophers, int act);
 
 #endif

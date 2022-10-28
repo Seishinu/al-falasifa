@@ -6,7 +6,7 @@
 /*   By: ynuiga <ynuiga@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/22 15:46:37 by ynuiga            #+#    #+#             */
-/*   Updated: 2022/10/22 16:05:37 by ynuiga           ###   ########.fr       */
+/*   Updated: 2022/10/28 14:44:13 by ynuiga           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,4 +50,12 @@ void	prep_to_eat(t_philo	*philosophers)
 	food_activity(PHF, philosophers);
 	sem_wait(philosophers->forks);
 	food_activity(PHF, philosophers);
+}
+
+void	meals(t_philo	*philosophers, int act)
+{
+	if (act == 10)
+		philosophers->last_meal = current_time_ms();
+	else
+		philosophers->philo_times_ate++;
 }

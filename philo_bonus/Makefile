@@ -1,6 +1,6 @@
 NAME_BONUS = philo_bonus
 
-CFLAGS = -Wall -Werror -Wextra #-fsanitize=thread -g
+CFLAGS = -Wall -Werror -Wextra -fsanitize=thread -g
 
 SRCS_BONUS = philo_bonus.c \
 	error_bonus.c \
